@@ -2,17 +2,17 @@ package printstruct
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
 	"time"
-	"github.com/wow-look-at-my/testify/assert"
-	"github.com/wow-look-at-my/testify/require"
 )
 
 func TestFormatBytes(t *testing.T) {
 	tests := []struct {
-		in	int64
-		want	string
+		in   int64
+		want string
 	}{
 		{0, "0B"},
 		{1, "1B"},
@@ -37,8 +37,8 @@ func TestFormatBytes(t *testing.T) {
 
 func TestFormatDuration(t *testing.T) {
 	tests := []struct {
-		in	time.Duration
-		want	string
+		in   time.Duration
+		want string
 	}{
 		{0, "0s"},
 		{30 * time.Second, "30s"},
@@ -83,17 +83,17 @@ func TestPrettify(t *testing.T) {
 // explicitly-skipped field via `json:"-"`. The Namespace field has a json
 // tag but no label tag, exercising the json-tag fallback.
 type processFixture struct {
-	Name	string	`json:"name" label:"Name"`
-	PM2Env	struct {
-		Namespace	string	`json:"namespace"`
-		Status		string	`json:"status" label:"Status"`
-		PMUptime	int64	`json:"pm_uptime" label:"Uptime" fmt:"duration"`
-		RestartTime	int	`json:"restart_time" label:"Restarts"`
-	}	`json:"pm2_env"`
-	Monit	struct {
+	Name   string `json:"name" label:"Name"`
+	PM2Env struct {
+		Namespace   string `json:"namespace"`
+		Status      string `json:"status" label:"Status"`
+		PMUptime    int64  `json:"pm_uptime" label:"Uptime" fmt:"duration"`
+		RestartTime int    `json:"restart_time" label:"Restarts"`
+	} `json:"pm2_env"`
+	Monit struct {
 		Memory int64 `json:"memory" label:"Memory" fmt:"bytes"`
-	}	`json:"monit"`
-	Internal	string	`json:"-"`	// explicitly skipped
+	} `json:"monit"`
+	Internal string `json:"-"` // explicitly skipped
 }
 
 func newFixture(name, status string, restarts int, mem int64, uptime time.Duration) processFixture {
@@ -211,8 +211,8 @@ func looksLikeDuration(s string) bool {
 
 func TestPrintStruct_FallbackToFieldName(t *testing.T) {
 	type fallback struct {
-		FullName	string	// no tags at all -> "FullName"
-		Total		int	`json:"total_count"`	// json tag -> "Total Count"
+		FullName string // no tags at all -> "FullName"
+		Total    int    `json:"total_count"` // json tag -> "Total Count"
 	}
 	v := fallback{FullName: "ada", Total: 42}
 	var buf bytes.Buffer
@@ -275,16 +275,16 @@ func TestPrintStruct_NestedFlattening(t *testing.T) {
 		Value string `label:"Deep"`
 	}
 	type middle struct {
-		Deepest	deepest
-		Other	string	`label:"Other"`
+		Deepest deepest
+		Other   string `label:"Other"`
 	}
 	type top struct {
-		Top	string	`label:"Top"`
-		Middle	middle
+		Top    string `label:"Top"`
+		Middle middle
 	}
 	v := top{
-		Top:	"t",
-		Middle:	middle{Deepest: deepest{Value: "d"}, Other: "o"},
+		Top:    "t",
+		Middle: middle{Deepest: deepest{Value: "d"}, Other: "o"},
 	}
 	var buf bytes.Buffer
 	require.NoError(t, PrintStruct(&buf, v))
